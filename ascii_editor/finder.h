@@ -57,9 +57,7 @@ static void add_file_to_list(struct file_manager** fm,const char* path,char* fil
 
     current->next = _new;
     
-  }
-  
- 
+  } 
 }
 
 int is_dir(char* path){
@@ -72,7 +70,7 @@ int is_dir(char* path){
     return 0;
 }
 
-void walk_dir(struct file_manager** fm, char* starter_path){
+void walk_dir(struct file_manager** fm, char* starter_path,const char* ext){
   DIR* dir;
   struct dirent *file;
   
@@ -93,11 +91,14 @@ void walk_dir(struct file_manager** fm, char* starter_path){
       strcat(fullpath,PATH_DELIM);
     }
     strcat(fullpath,file->d_name);
+    int len = strlen(fullpath);
+
+    fullpath[len + 1] = '\0';
     
     if(is_dir(fullpath)){
 
-      walk_dir(fm,fullpath);
-    }else if(strstr(file->d_name,".c") != NULL){
+      walk_dir(fm,fullpath,ext);
+    }else if(strstr(file->d_name,ext) != NULL){
       
       //printf("Added %s\n",file->d_name);
       add_file_to_list(fm,fullpath,file->d_name);
@@ -111,7 +112,7 @@ void print_list(struct file_manager* fm){
     printf("NONE");
     return;
   }
-    fm->list = fm->head;
+  fm->list = fm->head;
   while(fm->list != NULL){
     printf("index: %d. fullpath: %s. name:%s \n",fm->list->index,fm->list->path,fm->list->name);
     fm->list = fm->list->next;
@@ -130,8 +131,22 @@ void destroy_manager(struct file_manager** fm){
   *fm = NULL;
 }
 
-void rescan(struct file_manager** fm, char* path){
+void rescan(struct file_manager** fm, char* path,const char* ext){
   destroy_manager(fm);
-  walk_dir(fm,path);
+  walk_dir(fm,path,ext);
 }
+
+int to_index(struct file_list** fm,int index){
+  while(*fm != NULL){
+    if((*fm)->index == index){
+      return 1;
+    }else{
+      (*fm) = (*fm)->next;
+    }
+  }
+
+  return 0;
+}
+
+
 #endif
